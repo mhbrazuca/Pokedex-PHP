@@ -1,3 +1,5 @@
+/* Esse arquivo deixa a página mais bonitinha. Você "liga" ele pelo <link> no <head> do index.php */
+
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
