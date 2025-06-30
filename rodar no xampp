@@ -11,3 +11,96 @@ http://localhost/nome_da_pasta_que_você_quiser
 ✅ O CSS é carregado no PHP via tag <link> no <head> do HTML (já está no código acima):
 
 <link rel="stylesheet" href="style.css">
+
+php com formulario: <?php
+session_start();
+
+// Se ainda não tiver a lista de itens na sessão, cria com itens padrão
+if (!isset($_SESSION['items'])) {
+    $_SESSION['items'] = [
+        ['nome' => 'Item 1', 'descricao' => 'Primeiro item do catálogo.'],
+        ['nome' => 'Item 2', 'descricao' => 'Segundo item do catálogo.'],
+        ['nome' => 'Item Especial', 'descricao' => 'Um item muito especial.'],
+    ];
+}
+
+// Se formulário de cadastro for enviado, adiciona novo item
+if (isset($_POST['novo_nome']) && isset($_POST['nova_descricao'])) {
+    $novo_item = [
+        'nome' => $_POST['novo_nome'],
+        'descricao' => $_POST['nova_descricao']
+    ];
+    $_SESSION['items'][] = $novo_item; // adiciona na lista da sessão
+}
+
+// Pega os itens da sessão para mostrar na lista
+$items = $_SESSION['items'];
+
+// Pega termo de pesquisa, se houver
+$pesquisa = '';
+if (isset($_GET['pesquisa'])) {
+    $pesquisa = strtolower($_GET['pesquisa']);
+}
+
+// Filtra itens pelo termo de pesquisa (se houver)
+$filtrados = [];
+foreach ($items as $item) {
+    if ($pesquisa === '' || strpos(strtolower($item['nome']), $pesquisa) !== false) {
+        $filtrados[] = $item;
+    }
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Catálogo com Cadastro</title>
+
+    <!-- Liga o CSS -->
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <h1>Catálogo de Itens</h1>
+
+    <!-- BLOCO DO LOGIN -->
+    <?php if (isset($_SESSION['usuario'])): ?>
+        <p>Bem-vindo, <?= htmlspecialchars($_SESSION['usuario']) ?>! <a href="logout.php">Sair</a></p>
+    <?php else: ?>
+        <!-- Formulário de login envia para login.php -->
+        <form action="login.php" method="POST">
+            <input type="text" name="usuario" placeholder="Usuário">
+            <input type="password" name="senha" placeholder="Senha">
+            <button type="submit">Login</button>
+        </form>
+    <?php endif; ?>
+
+    <!-- BARRA DE PESQUISA -->
+    <form method="GET">
+        <input type="text" name="pesquisa" value="<?= htmlspecialchars($pesquisa) ?>" placeholder="Buscar item...">
+        <button type="submit">Pesquisar</button>
+    </form>
+
+    <!-- FORMULÁRIO DE CADASTRO DE NOVO ITEM (só aparece se estiver logado) -->
+    <?php if (isset($_SESSION['usuario'])): ?>
+        <h2>Cadastrar Novo Item</h2>
+        <form method="POST">
+            <input type="text" name="novo_nome" placeholder="Nome do item" required>
+            <input type="text" name="nova_descricao" placeholder="Descrição do item" required>
+            <button type="submit">Adicionar</button>
+        </form>
+    <?php endif; ?>
+
+    <!-- LISTA DE ITENS -->
+    <ul>
+        <?php if (count($filtrados) > 0): ?>
+            <?php foreach ($filtrados as $item): ?>
+                <li>
+                    <strong><?= htmlspecialchars($item['nome']) ?></strong>: <?= htmlspecialchars($item['descricao']) ?>
+                </li>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <li>Nenhum item encontrado.</li>
+        <?php endif; ?>
+    </ul>
+</body>
+</html>
